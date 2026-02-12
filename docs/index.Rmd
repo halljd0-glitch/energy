@@ -1,0 +1,53 @@
+---
+title: "Energy"
+output: html_document
+date: "2026-02-12"
+---
+## Renewable Energy Dataset
+```{r,eval=TRUE,echo=FALSE}
+library(readr)
+energy<-read_csv('../../data/IRENA.data.csv',skip=2)
+```
+
+
+## Gapminder dataset
+
+```{r,eval=TRUE, echo=FALSE}
+library(gapminder)
+library(dplyr)
+data(gapminder)
+gapminder %>% head
+```
+
+
+## Carbon emissions
+
+
+```{r,eval=TRUE,echo=FALSE}
+library(dplyr)
+library(readr)
+
+
+url <- 'https://nyc3.digitaloceanspaces.com/owid-public/data/co2/owid-co2-data.csv'
+carbon <- read_csv(url) 
+carbon %>% head
+```
+
+
+## Levelized cost of energy
+
+```{r,eval=TRUE,echo=FALSE}
+url <- 'https://raw.githubusercontent.com/ericmkeen/sewanee_esus/master/02_energy_sector/levelized-cost-of-energy.csv'
+econ <- read_csv(url)
+econ %>% head
+```
+```{r,eval=TRUE,echo=FALSE}
+library(ggplot2)
+ggplot(econ,aes(x=year,y=cost,color=source))+geom_point(alpha=0.5,size=2)+geom_hline(yintercept=0.05,lty=2)+geom_hline(yintercept = 0.18,lty=2)+annotate(geom='text',x=1990,y=0.1,size=3,label="Range of fossil \n fuel costs")
+#we are going to add a horizontal line to look at fossil fuels and we are going to add annotations to this lined area
+```
+```{r,eval=TRUE,echo=FALSE}
+library(knitr)
+econ%>%filter(year==2020)%>%group_by(source)%>%summarize(cost=mean(cost,na.rm=TRUE))%>%kable
+```
+
