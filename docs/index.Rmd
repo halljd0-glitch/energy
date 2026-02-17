@@ -3,51 +3,84 @@ title: "Energy"
 output: html_document
 date: "2026-02-12"
 ---
-## Renewable Energy Dataset
-```{r,eval=TRUE,echo=FALSE}
+
+## Introduction
+
+Global carbon emissions and energy production offer a clear snapshot of how the world produces and consumes energy. As emissions continue to rise their impacts are felt everywhere through climate change, environmental degradation, and growing social and economical strain. In response, the transition to renewable energy has emerged as a key pathway toward a more sustainable future.
+
+```{r,echo=FALSE,}
 library(readr)
-energy<-read_csv('../../data/IRENA.data.csv',skip=2)
+energy<-read_csv('../../data/IRENA.data.csv',skip=2,show_col_types = FALSE)
 ```
 
+## Carbon Emissions
 
-## Gapminder dataset
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(dplyr)
+library(readr)
+library(plotly)
 
-```{r,eval=TRUE, echo=FALSE}
+url <- 'https://nyc3.digitaloceanspaces.com/owid-public/data/co2/owid-co2-data.csv'
+carbon <- read_csv(url) 
+carbon<-carbon%>%filter(year>=2000)
+carbon1<-carbon%>%filter(country%in%c('United States','India','China','Brazil','Canada','Russia','Germany','United Kingdom'))
+
+ggplot(carbon1,aes(x=year,y=cumulative_co2,colour=country))+geom_path()+labs(title='Cumulative Annual Co2 Emissions By Country',y='Cumulative Co2 (millions of metric tons)')
+ggplotly()
+
+```
+
+This graph shows cumulative CO₂ emissions by country over time, meaning it represents the total amount of carbon dioxide each country has added to the atmosphere. The United States has the highest cumulative emissions, reflecting its long history of industrialization and fossil fuel use. China’s emissions rise sharply, especially after 2000, showing how rapid industrial growth can quickly increase total emissions. India’s emissions grow more gradually, highlighting lower historical responsibility despite increasing energy demand. Countries like Germany and the United Kingdom show slower growth, suggesting earlier transitions toward cleaner energy and stronger climate policies. Overall, the graph emphasizes that climate change is driven by accumulated emissions, which is why historical responsibility is central to sustainability and climate policy discussions.
+
+## Non-Renewable and Renewable Energy
+
+over the years total electricity generation steadily increases, reflecting growing global energy demands driven by population growth, economic development, and increased electricity usage. for much of the timeline, non renewable energy has dominated the overall production, indicating how heavily the global energy system has historically relied on fossil fuels. However, the most important trend is the consistent and accelerating rise in renewable energy generation. while renewables start at a much lower level, they are growing in usage relative to nonrenwable energy production. this reflects global investments in cleaner energy technologies, falling costs of wind and solar, and stronger climate and sustainability policies.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(dplyr)
+library(knitr)
+library(ggplot2)
+energy<-energy%>%rename('Electricity'=`Electricity statistics`)
+energy<-energy%>%mutate(Year=as.numeric(Year),Electricity=as.numeric(Electricity))
+energy<-energy%>%filter(Technology%in%c('Total non-renewable','Total renewable'))
+energy<-energy%>%group_by(Year,Technology)%>%summarize(sumElectricity=sum(Electricity,na.rm=TRUE))
+ggplot(energy,aes(x=Year,y=sumElectricity,fill = Technology))+geom_area(alpha=0.7)+labs(title='Global Renewable and Non-Renewable Energy Generation (GWh) \n Through the Years',y='Electricity Generation (GWh)')
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
 library(gapminder)
 library(dplyr)
 data(gapminder)
 gapminder %>% head
 ```
 
+## Economic Outlook in Transition to Renewable Energy
 
-## Carbon emissions
-
-
-```{r,eval=TRUE,echo=FALSE}
-library(dplyr)
-library(readr)
-
-
-url <- 'https://nyc3.digitaloceanspaces.com/owid-public/data/co2/owid-co2-data.csv'
-carbon <- read_csv(url) 
-carbon %>% head
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+url<-'https://raw.githubusercontent.com/ericmkeen/sewanee_esus/master/02_energy_sector/levelized-cost-of-energy.csv'
+econ<-read_csv(url)
+carbon1<-carbon%>%filter(country%in%c('United States','India','China','Brazil','Canada','Russia','Germany','United Kingdom'))
+carbon1<-carbon1%>%filter(year<=2020)
+carbon1<-carbon1%>%filter(year>=1900)
+carbon1<-carbon1%>%mutate(gdppercap=gdp/population) 
+ggplot(carbon1,aes(x=year,y=gdppercap,color=country))+geom_path()+labs(title="GDP per Captia from 1900 to 2020 for Major Carbon Emission Countries",y='GDP per Capita',x='Year') 
+ggplotly()
 ```
+Countries with higher GDP per capita, such as the United States and Western European nations, gained the financial resources needed to invest in new energy technologies, infrastructure, and policy incentives. This economic capacity makes it easier to fund the upfront costs of renewable energy. As GDP per capita increases, the ability to invest in renewable energy also expands. Overall, the transition to renewable energy tends to accelerate as countries become wealthier, while lower-income countries face greater challenges balancing development and sustainability.
 
-
-## Levelized cost of energy
-
-```{r,eval=TRUE,echo=FALSE}
-url <- 'https://raw.githubusercontent.com/ericmkeen/sewanee_esus/master/02_energy_sector/levelized-cost-of-energy.csv'
-econ <- read_csv(url)
-econ %>% head
-```
-```{r,eval=TRUE,echo=FALSE}
+```{r echo=FALSE, warning=FALSE}
 library(ggplot2)
-ggplot(econ,aes(x=year,y=cost,color=source))+geom_point(alpha=0.5,size=2)+geom_hline(yintercept=0.05,lty=2)+geom_hline(yintercept = 0.18,lty=2)+annotate(geom='text',x=1990,y=0.1,size=3,label="Range of fossil \n fuel costs")
+ggplot(econ,aes(x=year,y=cost,color=source))+geom_point(alpha=0.5,size=2)+geom_hline(yintercept=0.05,lty=2)+geom_hline(yintercept = 0.18,lty=2)+annotate(geom='text',x=1990,y=0.1,size=3,label="Range of fossil \n fuel costs")+labs(title='The Cost of Renewable Energy Falls within The Range of Fossil Fuel Cost',x='Year',y='Cost')
 #we are going to add a horizontal line to look at fossil fuels and we are going to add annotations to this lined area
 ```
-```{r,eval=TRUE,echo=FALSE}
+
+```{r,echo=FALSE}
 library(knitr)
 econ%>%filter(year==2020)%>%group_by(source)%>%summarize(cost=mean(cost,na.rm=TRUE))%>%kable
 ```
 
+The cost of many renewable energy technologies have fallen to within or below the fossil fuel cost range in recent years. This decline in cost is critical for the transition to renewable energy, helping to remove one of the main economic barriers. As renewables become cost competitive, countries no longer need high GDP per capita just to justify clean energy investments. Instead, renewables become financially attractive on their own. Renewable energy is no longer just an environmental choice but is increasingly an economic one, accelerating the global shift toward sustainability.
+
+## Conclusion
+
+The transition towards renewable energy is necessitated by rising cumulative Co2 emissions, rapidly falling technology costs and economic capacity. Renewable energy costs have fallen to match or undercut fossil fuels, the transition is no longer limited to high income countries. This shift makes renewable energy not just a sustainability goal, but an increasingly practical and equitable path forward for meeting global energy demand while reducing emissions.
